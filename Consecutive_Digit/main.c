@@ -1,4 +1,4 @@
-"""
+/*
 Problem:
 Write a function to check for 3 or more consecutive digits in an integer.
 No loop, no array, recursion only
@@ -14,24 +14,14 @@ Sample Test Cases:
 12321 -> No
 1222333 -> Yes
 12223334 -> Yes
-"""
+*/
 
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "check_digit.h"
 
-int check_digit(int n)
-{
-    if(n < 100) return 0;
-
-    if((n%1000)/100 ==  (n%100)/10 && (n%100)/10 == n%10)
-    {
-        return 1;
-    } 
-
-    return check_digit(n/10);
-}
 
 int main(int argc, char const *argv[])
 {

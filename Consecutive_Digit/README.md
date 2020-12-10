@@ -14,6 +14,20 @@ For each level of function call, use the sliding window of the last 3 digits of 
 
 Return true if they are equal, otherwise perform recursion on N/10 where N is the number.
 
+```C
+int check_digit(int n)
+{
+    if(n < 100) return 0;
+
+    if((n%1000)/100 ==  (n%100)/10 && (n%100)/10 == n%10)
+    {
+        return 1;
+    } 
+
+    return check_digit(n/10);
+}
+```
+
 ## Sample Test Cases
 * 12345 -> No
 * 122223 -> Yes, 222

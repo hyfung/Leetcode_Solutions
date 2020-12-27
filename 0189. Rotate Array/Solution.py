@@ -2,7 +2,7 @@ import copy
 
 class Solution:
     def rotate(self, nums: List[int], k: int) -> None:
-        k = k % len(nums)
+        k %= len(nums)
         N = len(nums)
         
         arr = copy.copy(nums)

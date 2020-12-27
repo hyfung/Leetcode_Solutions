@@ -6,26 +6,27 @@
 #         self.right = right
 class Solution:
     def getMinimumDifference(self, root: TreeNode) -> int:
-        ls = []
         
         def traverse(node):
-            nonlocal ls
+            ls = list()
             
             if node is None:
-                return
-            traverse(node.left)
-            ls.append(node.val)
-            traverse(node.right)
+                return ls
+            
+            ls += traverse(node.left)
+            
+            ls += [node.val]
+            
+            ls += traverse(node.right)
+            
+            return ls
         
-        traverse(root)
+        diff = 2147483647
         
-        ls.sort()
+        arr = sorted(traverse(root))
         
-        x = 2147483647
+        for i in range(len(arr) - 1):
+            diff = min(diff, abs(arr[i] - arr[i+1]))
         
-        for i in range(len(ls) - 1):
-            x = min(abs(ls[i+1]-ls[i]), x)
-        
-        return x
-        
+        return diff
         

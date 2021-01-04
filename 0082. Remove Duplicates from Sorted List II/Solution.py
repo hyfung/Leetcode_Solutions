@@ -6,30 +6,30 @@
 class Solution:
     def deleteDuplicates(self, head: ListNode) -> ListNode:
         
-        if head is None:
-            return None
+        d = dict()
         
         ptr = head
-        hashmap = dict()
         
         while ptr:
-            if ptr.val not in hashmap:
-                hashmap[ptr.val] = 1
+            if ptr.val not in d:
+                d[ptr.val] = 1
             else:
-                hashmap[ptr.val] += 1
+                d[ptr.val] += 1
+                
             ptr = ptr.next
         
-        ptr = None
+        vals = [k for k,v in d.items() if v == 1]
         
-        ls = [k for k,v in hashmap.items() if v == 1]
+        if vals == []:
+            return None
         
-        head = ListNode(ls[0])
+        head = ListNode(vals[0])
         ptr = head
         
-        for i,v in enumerate(ls[1:]):
+        for v in vals[1:]:
             ptr.next = ListNode(v)
             ptr = ptr.next
-            
+        
         return head
-        
-        
+            
+            

@@ -2,36 +2,40 @@ class Solution {
 public:
     int numRookCaptures(vector<vector<char>>& board) {
         int iCapture = 0;
-        vector<int> rook = {0,0};
+        vector<int> vRookPosition = {0,0};
         
+        // Four directions to look for pawn or bishop
         vector<vector<int>> directions = {{0,1}, {1,0}, {-1,0}, {0,-1}};
         
+        //Scan for rook on the chessboard
         for (int j=0;j<8;j++)
         {
             for (int i=0;i<8;i++)
             {
                 if (board[j][i] == 'R')
                 {
-                    rook = {i,j};
-                    cout << "Rook - X:" << rook[0] << " " << "Y:"<< rook[1] << endl;
+                    // Rook located
+                    vRookPosition = {i,j};
+                    cout << "vRookPosition - X:" << vRookPosition[0] << " " << "Y:"<< vRookPosition[1] << endl;
                 }
             }
         }
         
-        for(auto &v: directions)
+        for (auto &v: directions)
         {
-            vector<int> rook_copy = vector<int>(rook);
-            while(rook_copy[0] > 0 && rook_copy[0] < 7 && rook_copy[1] > 0 && rook_copy[1] < 7)
+            vector<int> vRookPosTmp = vector<int>(vRookPosition);
+            while(vRookPosTmp[0] > 0 && vRookPosTmp[0] < 7 && vRookPosTmp[1] > 0 && vRookPosTmp[1] < 7)
             {
-                rook_copy[0] += v[0];
-                rook_copy[1] += v[1];
-                // break;
-                if (board[rook_copy[1]][rook_copy[0]] == 'p')
+                vRookPosTmp[0] += v[0];
+                vRookPosTmp[1] += v[1];
+                // Check if we hit any pawn on the path, if so we increment counter and break
+                if (board[vRookPosTmp[1]][vRookPosTmp[0]] == 'p')
                 {
                     iCapture++;
                     break;
                 }
-                if (board[rook_copy[1]][rook_copy[0]] == 'B')
+                // Check if we hit any bishop on the path if so we break
+                if (board[vRookPosTmp[1]][vRookPosTmp[0]] == 'B')
                 {
                     break;
                 }

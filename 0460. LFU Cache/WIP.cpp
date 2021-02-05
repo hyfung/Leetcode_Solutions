@@ -1,116 +1,130 @@
 #include <map>
 #include <vector>
 
-struct entry
+bool contains(std::map<int, int> &mymap, int value)
 {
-    int iValue = 0;
-    int iUsed = 0;
-    int iLastUsed = 0;
-};
+    if(mymap.find(value) != mymap.end())
+        return true;
+    return false;
+}
 
 class LFUCache {
 public:
-    std::map<int, struct entry> cache;
-    int iCapacity;
-    int iEpoch;
-    
+
+    std::map<int, int> store;
+    std::map<int, int> use_count;
+    std::map<int, int> last_use;
+    int capacity, epoch;
+
     LFUCache(int capacity) {
-        this->iCapacity = capacity;
-        this->iEpoch = 0;
+        this->capacity = capacity;
+        this->epoch = 0;
     }
     
     int get(int key) {
-        this->iEpoch++;
-        if(this->cache.find(key) != this->cache.end())
+        this->epoch++;
+
+        if(contains(this->store, key))
         {
-            this->cache[key].iUsed++;
-            this->cache[key].iLastUsed = this->iEpoch;
-            return this->cache[key].iValue;
+            this->use_count[key]++;
+            this->last_use[key] = this->epoch;
+            return this->store[key];
         }
         else
         {
             return -1;
         }
+
     }
     
     void put(int key, int value) {
-        this->iEpoch++;
-        // Check if the key already exists in our cache
-        // Just renew the cache entry if so
-        if (this->cache.find(key) != this->cache.end())
+        if (this->capacity == 0)
+            return;
+
+        this->epoch++;
+
+        if (contains(this->store, key))
         {
-            this->cache[key].iValue = value;
-            this->cache[key].iLastUsed = this->iEpoch;
+            this->store[key] = value;
+            this->last_use[key] = this->epoch;
+            this->use_count[key] += 1;
             return;
         }
 
-        // The key does not exist, check if we have enough space 
-        if (this->cache.size() < this->iCapacity)
+        if (this->store.size() < this->capacity)
         {
-            this->cache[key].iValue = value;
-            this->cache[key].iLastUsed = this->iEpoch;
-            this->cache[key].iUsed = 0;
+            this->store[key] = value;
+            this->last_use[key] = this->epoch;
+            this->use_count[key] = 0;
             return;
         }
 
-        // We need to evict an old key
-
-        std::vector<int> iEvictCandidatesKey;
-        int iLeastUsed = 2147483647;
-
-        // Create a list of candidate keys to be evicted
-        for (auto & [k, v] : this->cache)
+        int lowest_use_count = 2147483647;
+        int lowest_use_count_key = 0;
+        std::vector<int> lowest_use_count_keys;
+        
+        for (auto & [k,v] : this->use_count)
         {
-            // Item with lesser use count found, flush our candidate
-            if (v.iUsed < iLeastUsed)
+            if (v < lowest_use_count)
             {
-                // Flush our candidate
-                iEvictCandidatesKey.clear();
-
-                //Update new counter
-                iLeastUsed = v.iUsed;
-                iEvictCandidatesKey.push_back(k);
+                lowest_use_count_keys.clear();
+                lowest_use_count_keys.push_back(k);
+                lowest_use_count = v;
             }
-
-            // Item is within our least used count so add to candidate
-            if (v.iUsed == iLeastUsed)
+            if (v == lowest_use_count)
             {
-                iEvictCandidatesKey.push_back(k);
+                lowest_use_count_keys.push_back(k);
             }
         }
 
-        if (iEvictCandidatesKey.size() == 1)
+        if (lowest_use_count_keys.size() == 1)
         {
-            // We only has 1 key to evict
-            auto it = this->cache.find(iEvictCandidatesKey[0]);
-            this->cache.erase(it);
+            // Single key to evict
+            lowest_use_count_key = lowest_use_count_keys[0];
+            
+            auto itStore = this->store.find(lowest_use_count_key);
+            this->store.erase(itStore);
 
-            this->cache[key].iValue = value;
-            this->cache[key].iLastUsed = this->iEpoch;
-            this->cache[key].iUsed = 0;
+            auto itLastUse = this->last_use.find(lowest_use_count_key);
+            this->last_use.erase(itLastUse);
+
+            auto itUseCount = this->use_count.find(lowest_use_count_key);
+            this->use_count.erase(itUseCount);
+
+            this->store[key] = value;
+            this->last_use[key] = this->epoch;
+            this->use_count[key] = 0;
             return;
         }
         else
         {
-            int iRecentUsed = 2147483647;
-            int iEvictTarget;
-            for (auto &k : iEvictCandidatesKey)
+            //Multiple key to evict
+            int lowest_last_use = 2147483647;
+            int lowest_last_use_key = 0;
+            for (auto & [k,v] : this->last_use)
             {
-                if (this->cache[k].iLastUsed < iRecentUsed)
+                if (v < lowest_last_use)
                 {
-                    iEvictTarget = k;
-                    iRecentUsed = this->cache[k].iLastUsed;
+                    lowest_last_use = v;
+                    lowest_last_use_key = k;
                 }
             }
+            auto itStore = this->store.find(lowest_last_use_key);
+            this->store.erase(itStore);
 
-            auto it = this->cache.find(iRecentUsed);
-            this->cache.erase(it);
+            auto itLastUse = this->last_use.find(lowest_last_use_key);
+            this->last_use.erase(itLastUse);
 
-            this->cache[key].iValue = value;
-            this->cache[key].iLastUsed = this->iEpoch;
-            this->cache[key].iUsed = 0;
+            auto itUseCount = this->use_count.find(lowest_last_use_key);
+            this->use_count.erase(itUseCount);
+
+            this->store[key] = value;
+            this->last_use[key] = this->epoch;
+            this->use_count[key] = 0;
             return;
+
         }
+
 
     }
 };
